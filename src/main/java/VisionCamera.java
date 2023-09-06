@@ -12,6 +12,7 @@ import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -26,7 +27,19 @@ import edu.wpi.first.wpilibj.DriverStation;
   private AtomicReference<EstimatedRobotPose> m_atomicEstimatedRobotPose;
 
   public VisionCamera(String name, Transform3d transform) {
-
+    this.m_camera = new PhotonCamera(name);
+    this.m_transform = transform;
+    try {
+      var fieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile);
+      // PV estimates will always be blue, they'll get flipped by robot thread
+      fieldLayout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
+      this.m_poseEstimator = new PhotonPoseEstimator(
+          fieldLayout, PoseStrategy.MULTI_TAG_PNP, m_camera, m_transform);
+      m_poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+    } catch (IOException e) {
+      DriverStation.reportError("Failed to load AprilTagFieldLayout", e.getStackTrace());
+      this.m_poseEstimator = null;
+    }
   }
 
   @Override
