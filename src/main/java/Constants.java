@@ -15,6 +15,11 @@ import edu.wpi.first.math.geometry.Translation3d;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  public static class Global {
+    public static final int ROBOT_LOOP_HZ = 50;
+    public static final double ROBOT_LOOP_PERIOD = 1.0 / ROBOT_LOOP_HZ;
+  }
+  
   public static class Field {
     public static final double FIELD_WIDTH = 8.1026;
     public static final double FIELD_LENGTH = 16.4846;
