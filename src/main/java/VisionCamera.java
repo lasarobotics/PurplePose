@@ -18,7 +18,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 
 /** Create a camera */
- public class VisionCamera implements Runnable, AutoCloseable {
+public class VisionCamera implements Runnable, AutoCloseable {
   private final double APRILTAG_POSE_AMBIGUITY_THRESHOLD = 0.2;
   
   private PhotonCamera m_camera;
@@ -40,11 +40,31 @@ import edu.wpi.first.wpilibj.DriverStation;
       DriverStation.reportError("Failed to load AprilTagFieldLayout", e.getStackTrace());
       this.m_poseEstimator = null;
     }
+    this.m_atomicEstimatedRobotPose = new AtomicReference<EstimatedRobotPose>();
   }
 
   @Override
   public void run() {
+    // Return if camera or field layout failed to load
+    if (m_poseEstimator == null || m_camera == null) return;
+    
+    // Update and log inputs
+    PhotonPipelineResult pipelineResult = m_camera.getLatestResult();
 
+    // Return if result is non-existent or invalid
+    if (!pipelineResult.hasTargets()) return;
+    if (pipelineResult.targets.size() == 1
+        && pipelineResult.targets.get(0).getPoseAmbiguity() > APRILTAG_POSE_AMBIGUITY_THRESHOLD) return;
+    
+    // Update pose estimate
+    m_poseEstimator.update(pipelineResult).ifPresent(estimatedRobotPose -> {
+      var estimatedPose = estimatedRobotPose.estimatedPose;
+        // Make sure the measurement is on the field
+        if (estimatedPose.getX() > 0.0 && estimatedPose.getX() <= Constants.Field.FIELD_LENGTH
+            && estimatedPose.getY() > 0.0 && estimatedPose.getY() <= Constants.Field.FIELD_WIDTH) {
+          m_atomicEstimatedRobotPose.set(estimatedRobotPose);
+        }
+    });
   }
 
   /**
