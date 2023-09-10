@@ -16,15 +16,17 @@ import edu.wpi.first.util.WPIUtilJNI;
 public class PurpleVision {
   VisionSystem visionSystem = new VisionSystem(VisionSystem.initializeHardware());
 
-  private final String POSE_TOPIC = "Pose";
   private final String SERVER_NAME = "localhost";
+  private final String CLIENT_NAME = "PurpleVision";
+  private final String POSE_TOPIC = "Pose";
+
 
   private void run() {
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable table = inst.getTable("datatable");
     DoubleArrayPublisher posePublisher = table.getDoubleArrayTopic(POSE_TOPIC).publish();;
 
-    inst.startClient4("PurpleVision");
+    inst.startClient4(CLIENT_NAME);
     inst.setServer(SERVER_NAME); // where TEAM=190, 294, etc, or use inst.setServer("hostname") or similar
 
     while (true) {
@@ -40,7 +42,7 @@ public class PurpleVision {
       posePublisher.set(poseArray);
     }
 
-    posePublisher.close();;
+    posePublisher.close();
   }
   public static void main(String[] args) throws IOException {
     NetworkTablesJNI.Helper.setExtractOnStaticLoad(false);
