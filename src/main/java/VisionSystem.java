@@ -23,7 +23,7 @@ public class VisionSystem implements AutoCloseable {
    * Create a new vision subsystem
    * @param visionHardware Vision hardware
    */
-  private VisionSystem(Hardware visionHardware) {
+  public VisionSystem(Hardware visionHardware) {
     this.m_cameras = visionHardware.cameras;
   
     // Setup camera pose estimation threads
