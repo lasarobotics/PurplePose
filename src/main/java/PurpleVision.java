@@ -20,7 +20,6 @@ public class PurpleVision {
   private final String CLIENT_NAME = "PurpleVision";
   private final String POSE_TOPIC = "Pose";
 
-
   private void run() {
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable table = inst.getTable("datatable");
@@ -38,13 +37,19 @@ public class PurpleVision {
       }
       
       Pose3d currentPose = visionSystem.getEstimatedGlobalPose().get(0).estimatedPose;
-      double[] poseArray = { currentPose.getX(), currentPose.getY(), currentPose.getZ(), Math.toDegrees(currentPose.getRotation().getAngle()) };
+      double[] poseArray = { 
+        currentPose.getX(),
+        currentPose.getY(),
+        currentPose.getZ(),
+        currentPose.getRotation().toRotation2d().getDegrees()
+      };
       posePublisher.set(poseArray);
     }
 
     posePublisher.close();
   }
-  public static void main(String[] args) throws IOException {
+
+  public static void main(String... args) throws IOException {
     NetworkTablesJNI.Helper.setExtractOnStaticLoad(false);
     WPIUtilJNI.Helper.setExtractOnStaticLoad(false);
     WPIMathJNI.Helper.setExtractOnStaticLoad(false);
