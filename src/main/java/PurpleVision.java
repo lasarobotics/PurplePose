@@ -1,5 +1,7 @@
 import java.io.IOException;
 
+import org.photonvision.EstimatedRobotPose;
+
 import edu.wpi.first.cscore.CameraServerJNI;
 import edu.wpi.first.math.WPIMathJNI;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -36,12 +38,14 @@ public class PurpleVision {
         break;
       }
       
-      Pose3d currentPose = visionSystem.getEstimatedGlobalPose().get(0).estimatedPose;
+      EstimatedRobotPose currentEstimatedPose = visionSystem.getAverageEstimatedGlobalPose();
+      Pose3d currentPose = currentEstimatedPose.estimatedPose;
       double[] poseArray = { 
         currentPose.getX(),
         currentPose.getY(),
         currentPose.getZ(),
-        currentPose.getRotation().toRotation2d().getDegrees()
+        currentPose.getRotation().toRotation2d().getDegrees(),
+        currentEstimatedPose.timestampSeconds
       };
       posePublisher.set(poseArray);
     }

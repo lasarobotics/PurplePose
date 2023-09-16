@@ -2,7 +2,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.photonvision.EstimatedRobotPose;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj.Notifier;
 
 public class VisionSystem implements AutoCloseable {
@@ -54,7 +57,7 @@ public class VisionSystem implements AutoCloseable {
 
   /**
    * Get currently estimated robot pose
-   * @return  an EstimatedRobotPose with an estimated pose, the timestamp, and targets used to create the estimate
+   * @return an EstimatedRobotPose with an estimated pose, the timestamp, and targets used to create the estimate
    */
   public List<EstimatedRobotPose> getEstimatedGlobalPose() {
     List<EstimatedRobotPose> estimatedPoses = new ArrayList<EstimatedRobotPose>();
@@ -65,6 +68,45 @@ public class VisionSystem implements AutoCloseable {
     }
    
     return estimatedPoses;
+  }
+
+  /**
+   * Get average currently estimated robot pose
+   * @return an EstimatedRobotPose with an estimated pose, the timestamp, and targets used to create the estimate
+   */
+  public EstimatedRobotPose getAverageEstimatedGlobalPose() {
+    List<EstimatedRobotPose> estimatedPoses = getEstimatedGlobalPose();
+
+    double averageX = 0.0;
+    double averageY = 0.0;
+    double averageZ = 0.0;
+    double averageRadians = 0.0;
+
+    // Get timestamp and targets from first estimated pose
+    double timestamp = estimatedPoses.get(0).timestampSeconds;
+    List<PhotonTrackedTarget> targets = estimatedPoses.get(0).targetsUsed;
+
+    // Average list of estimated poses
+    for (EstimatedRobotPose pose : estimatedPoses) {
+      Pose3d currentPose = pose.estimatedPose;
+      averageX += currentPose.getX();
+      averageY += currentPose.getY();
+      averageZ += currentPose.getZ();
+      averageRadians += currentPose.getRotation().toRotation2d().getRadians();
+    }
+
+    int numPoses = estimatedPoses.size();
+    averageX /= numPoses;
+    averageY /= numPoses;
+    averageZ /= numPoses;
+    averageRadians /= numPoses;
+
+    // Return average
+    EstimatedRobotPose averageEstimatedPose =
+    new EstimatedRobotPose(new Pose3d(averageX, averageY, averageZ,
+                                      new Rotation3d(0.0, 0.0, averageRadians)),
+                           timestamp, targets);
+    return averageEstimatedPose;
   }
 
   @Override
